@@ -1,12 +1,13 @@
 import javax.swing.JPanel;
 import javax.swing.JLabel;
+import javax.swing.ImageIcon;
 public class Animation{
 	private JPanel pane;
 	private JLabel board;
 	private int sudokuArray[][][];
-	private int size, startX, startY, inc, btnX, btnY, ans;
-	private int increment[]={84,56,42};
-	protected JLabel btn[][][];
+	private int size, startX, startY, inc;
+	protected JLabel btn[][];
+	private ImageIcon normal[];
 	private generalPanel gp=new generalPanel();
 	Animation(){}
 	Animation(int sudokuArray[][][], JPanel pane){
@@ -15,21 +16,22 @@ public class Animation{
 		pane.setVisible(true);
 		setConstants();
 		}
+	//one label per cell; empty cells change picture as the solver works
 	private void setConstants(){
 		size=sudokuArray.length;
 		startX=size/6+6;
 		startY=86;
-		inc=increment[size/3-2];
-		btn=new JLabel[size][size][size+1];
+		inc=504/size;
+		normal=new ImageIcon[size+1];
+		for(int num=0; num<=size; num++)
+			normal[num]=new ImageIcon("img/box/"+size+"x"+size+"/normal/"+num+".png");
+		btn=new JLabel[size][size];
 		for(int ctr=0, X=startX, Y=startY; ctr<size; ctr++, Y+=inc, X=startX){
 			for(int count=0; count<size; count++, X+=inc){
-				String img="normal";
 				if(sudokuArray[ctr][count][1]==0)
-					img="given";
-				for(int counter=0; counter<size+1; counter++)
-					btn[ctr][count][counter]=gp.addInvisibleLabel(pane, "img/box/"+size+"x"+size+"/"+img+"/"+counter+".png", X, Y);
-				if(img.equals("given"))
-					btn[ctr][count][sudokuArray[ctr][count][0]].setVisible(true);
+					btn[ctr][count]=gp.addLabel(pane, "img/box/"+size+"x"+size+"/given/"+sudokuArray[ctr][count][0]+".png", X, Y);
+				else
+					btn[ctr][count]=gp.addLabel(pane, normal[0], X, Y);
 				}
 			}
 		board=gp.addLabel(pane,"img/board/"+size+"x"+size+".png",0,84);
@@ -37,25 +39,12 @@ public class Animation{
 	protected int[][][] getSudokuArray(){
 		return sudokuArray;
 		}
+	//shows the solver's current best board in every empty cell
 	protected void changePic(int solution[][][]){
-		for(int row=0, row2=size-1; row<size; row++, row2--){
-			for(int col=row, col2=size-1; col<size; col++, col2--){
-				if(sudokuArray[row][col][1]==1){
-					btn[row][col][sudokuArray[row][col][0]].setVisible(false);
-					btn[row][col][solution[row][col][0]].setVisible(true);
-					}
-				if(sudokuArray[col][row][1]==1){
-					btn[col][row][sudokuArray[col][row][0]].setVisible(false);
-					btn[col][row][solution[col][row][0]].setVisible(true);
-					}
-				if(sudokuArray[row2][col2][1]==1){
-					btn[row2][col2][sudokuArray[row2][col2][0]].setVisible(false);
-					btn[row2][col2][solution[row2][col2][0]].setVisible(true);
-					}
-				if(sudokuArray[col2][row2][1]==1){
-					btn[col2][row2][sudokuArray[col2][row2][0]].setVisible(false);
-					btn[col2][row2][solution[col2][row2][0]].setVisible(true);
-					}
+		for(int row=0; row<size; row++){
+			for(int col=0; col<size; col++){
+				if(sudokuArray[row][col][1]==1)
+					btn[row][col].setIcon(normal[solution[row][col][0]]);
 				}
 			}
 		sudokuArray=solution;
@@ -68,6 +57,7 @@ public class Animation{
 		board=null;
 		sudokuArray=null;
 		btn=null;
+		normal=null;
 		gp=null;
 		pane.setVisible(false);
 		}

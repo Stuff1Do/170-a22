@@ -7,7 +7,6 @@ public class UIBoard{
 	private JLabel board;
 	private int sudokuArray[][][];
 	private int size, startX, startY, inc, btnX, btnY, ans;
-	private int increment[]={84,56,42};
 	protected JButton btn[][];
 	private generalPanel gp=new generalPanel();
 	UIBoard(){}
@@ -37,7 +36,7 @@ public class UIBoard{
 		size=sudokuArray.length;
 		startX=size/6+6;
 		startY=86;
-		inc=increment[size/3-2];
+		inc=504/size;	//cell step in pixels: 56 for 9x9, 31 for 16x16, 20 for 25x25
 		btn=new JButton[size][size];
 		for(int ctr=0, X=startX, Y=startY; ctr<size; ctr++, Y+=inc, X=startX){
 			for(int count=0; count<size; count++, X+=inc){
@@ -54,6 +53,10 @@ public class UIBoard{
 				}
 			}
 		board=gp.addLabel(pane,"img/board/"+size+"x"+size+".png",0,84);
+		}
+	//shows a number in cell (x, y); 0 shows an empty cell
+	protected void showNumber(int x, int y, int value){
+		gp.changePicture(btn[x][y], "img/box/"+size+"x"+size+"/normal/"+value+".png");
 		}
 	protected JButton getButton(){
 		return btn[btnX][btnY];
