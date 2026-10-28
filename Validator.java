@@ -40,7 +40,7 @@ class Validator{
 						return false;
 						}
 					else if(grid[y][x][1]==0){
-						sub.add(new Integer(grid[y][x][0]));
+						sub.add(grid[y][x][0]);
 						}
 					}
 				}
@@ -49,12 +49,12 @@ class Validator{
 					return false;
 					}
 				else if(grid[ctr][ct][1]==0)
-					hor.add(new Integer(grid[ctr][ct][0]));
+					hor.add(grid[ctr][ct][0]);
 				if(grid[ct][ctr][1]==0 && ver.contains(grid[ct][ctr][0])){
 					return false;
 					}
 				else if(grid[ct][ctr][1]==0)
-					ver.add(new Integer(grid[ct][ctr][0]));
+					ver.add(grid[ct][ctr][0]);
 				}
 			}
 		return true;
@@ -73,7 +73,7 @@ class Validator{
 						return false;
 						}
 					else{
-						sub.add(new Integer(grid[y][x][0]));
+						sub.add(grid[y][x][0]);
 						}
 					}
 				}
@@ -82,12 +82,12 @@ class Validator{
 					return false;
 					}
 				else
-					hor.add(new Integer(grid[ctr][ct][0]));
+					hor.add(grid[ctr][ct][0]);
 				if(ver.contains(grid[ct][ctr][0])){
 					return false;
 					}
 				else
-					ver.add(new Integer(grid[ct][ctr][0]));
+					ver.add(grid[ct][ctr][0]);
 				}
 			}
 		return true;

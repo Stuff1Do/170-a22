@@ -47,11 +47,11 @@ class Bee{
 				if(hor.contains(solution[ctr][ct][0]))
 					penalty++;
 				else
-					hor.add(new Integer(solution[ctr][ct][0]));
+					hor.add(solution[ctr][ct][0]);
 				if(ver.contains(solution[ct][ctr][0]))
 					penalty++;
 				else
-					ver.add(new Integer(solution[ct][ctr][0]));
+					ver.add(solution[ct][ctr][0]);
 				}
 			}
 		return penalty;

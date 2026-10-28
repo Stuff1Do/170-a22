@@ -9,9 +9,11 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.Container;
+import java.awt.Desktop;
 import java.io.FileReader;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 public class SudokuBee extends Thread{
 	private generalPanel GP;
 	private UIGame game;
@@ -168,7 +170,7 @@ public class SudokuBee extends Thread{
 					final int y=btnY;
 					board.btn[btnX][btnY].addMouseListener(new MouseAdapter(){
 						public void mouseClicked(MouseEvent e){
-							if(!isSolved && e.getModifiers()==4){
+							if(!isSolved && (e.getModifiersEx() & MouseEvent.BUTTON3_DOWN_MASK)!=0){
 								pop.setVisible(true, x, y, board.getValue(x, y));
 								status.setVisible(false);
 								game.setVisible(false);
@@ -464,11 +466,11 @@ public class SudokuBee extends Thread{
 				printer.close();
 				printer=null;
 				game.setVisible(0);
-				Runtime rt=Runtime.getRuntime();
 				try{
-					rt.exec("rundll32 SHELL32.DLL,ShellExec_RunDLL "+file);
+					Desktop.getDesktop().open(new File(file));
 					}
-				catch (Exception ee){
+				catch (IOException | UnsupportedOperationException exception){
+					System.err.println("Unable to open solver results: " + exception.getMessage());
 					}
 				board.decompose();
 				board=null;
@@ -482,7 +484,6 @@ public class SudokuBee extends Thread{
 					}
 				abc.decompose();
 				abc=null;
-				rt=null;
 				status.setVisible(true);
 				}
 			game.setVisible(0);
