@@ -1,11 +1,13 @@
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JButton;
+import java.awt.Color;
+import java.awt.Font;
 public class UIOptions extends generalPanel{
 	private JPanel panel[];
 	private JLabel bg;
 
-	private String size[]={"img\\exit\\size\\6x6.png","img\\exit\\size\\9x9.png","img\\exit\\size\\12x12.png"};
+	private int size[]={9,16,25};
 	private String sound[]={"img\\exit\\sound\\on.png","img\\exit\\sound\\off.png"};
 
 	protected JLabel sizeLabel, levelLabel, soundLabel;
@@ -23,11 +25,12 @@ public class UIOptions extends generalPanel{
 			left[ctr]=addButton(panel[1], "img/exit/left.png", "img/exit/h_left.png",356,235+70*ctr);
 			right[ctr]=addButton(panel[1], "img/exit/right.png", "img/exit/h_right.png",568,235+70*ctr);
 			}
-		sizeLabel=addLabel(panel[1], size[1], 389,237);
+		sizeLabel=addLabel(panel[1], sizeText(0), Color.black, 389,237,181,40, JLabel.CENTER);
+		sizeLabel.setFont(new Font("Arial", Font.BOLD, 26));
 		soundLabel=addLabel(panel[1], sound[0], 389,308);
 		bg=addLabel(panel[1],"img/bg/options.png",100,99);
 
-		sz=1;
+		sz=0;
 		num=lvl=snd=0;
 		//panel[1].setVisible(true);
 		}
@@ -42,7 +45,14 @@ public class UIOptions extends generalPanel{
 			if(sz==-1)
 				sz=2;
 			}
-		changePicture(sizeLabel, size[sz]);
+		sizeLabel.setText(sizeText(sz));
+		}
+	//the chosen board size: 9, 16 or 25
+	protected int getBoardSize(){
+		return size[sz];
+		}
+	private String sizeText(int num){
+		return size[num]+" X "+size[num];
 		}
 	protected void setSound(boolean isRight){
 		if(isRight){

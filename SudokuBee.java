@@ -53,7 +53,7 @@ public class SudokuBee extends Thread{
 				mainGame();
 				status("");
 				isAns=true;
-				int size=(options.sz+2)*3;
+				int size=options.getBoardSize();
 				board(new int[size][size][2], true);
 				numEmp=100;
 				numOnlook=200;
@@ -73,7 +73,7 @@ public class SudokuBee extends Thread{
 		GP.open.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
 				GP.setVisibleButton(false);
-				int size=(options.sz+2)*3;
+				int size=options.getBoardSize();
 				isSolved=false;
 				board(new int[size][size][2], true);
 				loadSudoku(7);
@@ -83,7 +83,7 @@ public class SudokuBee extends Thread{
 			public void actionPerformed(ActionEvent e){
 				mainGame();
 				isAns=false;
-				int size=(options.sz+2)*3;
+				int size=options.getBoardSize();
 				isSolved=false;
 				board(new int[size][size][2], true);
 				game.setVisible(false);
@@ -193,7 +193,7 @@ public class SudokuBee extends Thread{
 			pop.btn[ctr].addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent e){
 					int size=pop.size;
-					GP.changePicture(board.btn[pop.btnX][pop.btnY],"img/box/"+size+"x"+size+"/normal/"+popCounter+".png");
+					board.showNumber(pop.btnX, pop.btnY, popCounter);
 					board.setSudokuArray(popCounter, isAns,pop.btnX, pop.btnY);
 					pop.field.setForeground(java.awt.Color.black);
 					pop.setVisible(false,0,0,0);
@@ -239,7 +239,7 @@ public class SudokuBee extends Thread{
 				if(e.getKeyCode()==KeyEvent.VK_ENTER){
 					String str=pop.field.getText();
 					if(str.length()==0){
-						GP.changePicture(board.btn[pop.btnX][pop.btnY],"img/box/"+pop.size+"x"+pop.size+"/normal/0.png");
+						board.showNumber(pop.btnX, pop.btnY, 0);
 						board.setSudokuArray(0, false,pop.btnX, pop.btnY);
 						pop.setVisible(false,0,0,0);
 						status.setVisible(true);
@@ -249,7 +249,7 @@ public class SudokuBee extends Thread{
 						try{
 							int size=pop.size, num=Integer.parseInt(str);
 							if(num<=size && num>=1){
-								GP.changePicture(board.btn[pop.btnX][pop.btnY],"img/box/"+size+"x"+size+"/normal/"+num+".png");
+								board.showNumber(pop.btnX, pop.btnY, num);
 								board.setSudokuArray(num, isAns,pop.btnX, pop.btnY);
 								pop.setVisible(false,0,0,0);
 								status.setVisible(true);
@@ -281,7 +281,7 @@ public class SudokuBee extends Thread{
 			});
 		pop.erase.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				GP.changePicture(board.btn[pop.btnX][pop.btnY],"img/box/"+pop.size+"x"+pop.size+"/normal/0.png");
+				board.showNumber(pop.btnX, pop.btnY, 0);
 				board.setSudokuArray(0, false,pop.btnX, pop.btnY);
 				pop.setVisible(false,0,0,0);
 				status.setVisible(true);
@@ -665,7 +665,7 @@ public class SudokuBee extends Thread{
 						mainGame();
 						status("");
 						isAns=true;
-						int size=(options.sz+2)*3;
+						int size=options.getBoardSize();
 						board(new int[size][size][2], true);
 						numEmp=100;
 						numOnlook=200;

@@ -2,11 +2,15 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import java.awt.Cursor;
 public class UIPop extends generalPanel{
+	//the picker is a honeycomb: rows of hexagons centered on CENTER_X, STEP_X apart, rows STEP_Y apart
+	//(the background pictures "img/game control/<size>x<size>.png" are drawn on the same grid)
+	private static final int CENTER_X=240, STEP_X=73, STEP_Y=65;
 	private JPanel pane;
 	private JPanel panel;
 	private JLabel bg;
+	private int rows[];	//hexagons per row; the first row is erase, text box, cancel
+	private int topY;	//y of the first row's centers
 	protected int size, btnX, btnY;
 	protected JButton cancel, erase;
 	protected JButton btn[];
@@ -16,61 +20,42 @@ public class UIPop extends generalPanel{
 		this.size=size;
 		panel=addPanel(pane, 5, 84, 500,500);
 		panel.setOpaque(true);
-		if(size==6)
-			sixButtons();
-		else if(size==9)
-			nineButtons();
-		else
-			twelveButtons();
+		if(size==9){
+			rows=new int[]{3,4,3,2};
+			topY=147;
+			}
+		else if(size==16){
+			rows=new int[]{3,4,5,4,3};
+			topY=120;
+			}
+		else{
+			rows=new int[]{3,4,5,4,5,4,3};
+			topY=55;
+			}
+		placeButtons();
 		bg=addLabel(panel, "img/game control/"+size+"x"+size+".png",0,0);
 		field.grabFocus();
 		}
-	private void sixButtons(){
-		btn=new JButton[6];
-		erase=addButton(panel, "img/box/misc/clear.png", 184,126);
-		cancel=addButton(panel, "img/box/misc/cancel.png", 256,126);
-		btn[0]=addButton(panel, "img/box/12x12/normal/1.png", 147,192);
-		btn[1]=addButton(panel, "img/box/12x12/normal/2.png", 221,192);
-		btn[2]=addButton(panel, "img/box/12x12/normal/3.png", 295,192);
-		btn[3]=addButton(panel, "img/box/12x12/normal/4.png", 183,257);
-		btn[4]=addButton(panel, "img/box/12x12/normal/5.png", 257,257);
-		btn[5]=addButton(panel, "img/box/12x12/normal/6.png", 221,322);
-		field=addTextField(panel, "", 221, 62,40,38);
-		}
-	private void nineButtons(){
-		btn=new JButton[9];
-		erase=addButton(panel, "img/box/misc/clear.png", 146,126);
-		cancel=addButton(panel, "img/box/misc/cancel.png", 293,126);
-		btn[0]=addButton(panel, "img/box/12x12/normal/1.png", 111,192);
-		btn[1]=addButton(panel, "img/box/12x12/normal/2.png", 184,192);
-		btn[2]=addButton(panel, "img/box/12x12/normal/3.png", 257,192);
-		btn[3]=addButton(panel, "img/box/12x12/normal/4.png", 330,192);
-		btn[4]=addButton(panel, "img/box/12x12/normal/5.png", 147,257);
-		btn[5]=addButton(panel, "img/box/12x12/normal/6.png", 220,257);
-		btn[6]=addButton(panel, "img/box/12x12/normal/7.png", 293,257);
-		btn[7]=addButton(panel, "img/box/12x12/normal/8.png", 184,322);
-		btn[8]=addButton(panel, "img/box/12x12/normal/9.png", 257,322);
-		field=addTextField(panel, "", 220, 128,40,38);
-		}
-	private void twelveButtons(){
-		btn=new JButton[12];
-		erase=addButton(panel, "img/box/misc/clear.png", 111,126);
-		cancel=addButton(panel, "img/box/misc/cancel.png", 329,126);
-		btn[0]=addButton(panel, "img/box/12x12/normal/1.png", 74,192);
-		btn[1]=addButton(panel, "img/box/12x12/normal/2.png", 147,192);
-		btn[2]=addButton(panel, "img/box/12x12/normal/3.png", 220,192);
-		btn[3]=addButton(panel, "img/box/12x12/normal/4.png", 293,192);
-		btn[4]=addButton(panel, "img/box/12x12/normal/5.png", 366,192);
-
-		btn[5]=addButton(panel, "img/box/12x12/normal/6.png", 111,257);
-		btn[6]=addButton(panel, "img/box/12x12/normal/7.png", 184,257);
-		btn[7]=addButton(panel, "img/box/12x12/normal/8.png", 257,257);
-		btn[8]=addButton(panel, "img/box/12x12/normal/9.png", 330,257);
-
-		btn[9]=addButton(panel, "img/box/12x12/normal/10.png", 147,322);
-		btn[10]=addButton(panel, "img/box/12x12/normal/11.png", 220,322);
-		btn[11]=addButton(panel, "img/box/12x12/normal/12.png", 293,322);
-		field=addTextField(panel, "", 200, 128,80,38);
+	//puts every button in the middle of its hexagon
+	private void placeButtons(){
+		btn=new JButton[size];
+		int num=0;
+		for(int row=0; row<rows.length; row++){
+			for(int ctr=0; ctr<rows[row]; ctr++){
+				int x=(int)Math.floor(CENTER_X+(ctr-(rows[row]-1)/2.0)*STEP_X+0.5);
+				int y=topY+row*STEP_Y;
+				if(row==0 && ctr==0)
+					erase=addButton(panel, "img/box/misc/clear.png", x-20, y-20);
+				else if(row==0 && ctr==1)
+					field=addTextField(panel, "", x-30, y-19, 60, 38);
+				else if(row==0)
+					cancel=addButton(panel, "img/box/misc/cancel.png", x-20, y-20);
+				else if(num<size){
+					btn[num]=addButton(panel, "img/game control/numbers/"+(num+1)+".png", x-20, y-20);
+					num++;
+					}
+				}
+			}
 		}
 	protected void setVisible(boolean isVisible, int btnX, int btnY, int num){
 		pane.setVisible(isVisible);
