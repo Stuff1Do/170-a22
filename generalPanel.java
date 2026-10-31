@@ -34,6 +34,7 @@ import java.awt.FileDialog;
 import java.util.Calendar;
 
 public class generalPanel{
+	@SuppressWarnings({"unchecked", "rawtypes"})
 	private JLabel bg;
 	protected JPanel solve,special;
 	protected JPanel panel[]=new JPanel[8];
