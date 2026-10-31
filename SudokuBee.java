@@ -54,27 +54,10 @@ public class SudokuBee extends Thread{
 		GP=new generalPanel(container);
 		GP.play.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
+				// the game starts only after the user answers the percentage dialog (see percentDialog)
 				randomGen=false;
 				fromUser=false;
 				percentDialog(true);
-				mainGame();
-				status("");
-				isAns=true;
-				int size=options.getBoardSize();
-				board(new int[size][size][2], true);
-				numEmp=100;
-				numOnlook=200;
-				numCycle=100000000;
-				generate=true;
-				gameMode=true;
-				isSolved=false;
-				try{
-					start();
-					}
-				catch(Exception ee){
-					start=true;
-					}
-				popUp(size);
 				}
 			});
 		GP.open.addActionListener(new ActionListener(){
@@ -142,14 +125,14 @@ public class SudokuBee extends Thread{
 			});
 		load.load.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
-				open(load.lists.getSelectedValue()+"");
+				open(load.getSelectedPath());
 				load.decompose();
 				load=null;
 				}
 			});
 		}
 	private void open(String str){
-		LoadSudoku sod=new LoadSudoku("save/"+str+".sav");
+		LoadSudoku sod=new LoadSudoku(str);
 		if(sod.getStatus()){
 			board.decompose();
 			try{
@@ -174,7 +157,7 @@ public class SudokuBee extends Thread{
 		int size=board.getSize();
 		for(btnX=0; btnX<size; btnX++){
 			for(btnY=0; btnY<size; btnY++){
-				if(board.getStatus(btnX, btnY)!=0){
+				if(board.getStatus(btnX, btnY)!=0 || !isAns){	// in create mode every cell can be edited
 					final int x=btnX;
 					final int y=btnY;
 					board.btn[btnX][btnY].addMouseListener(new MouseAdapter(){
@@ -204,6 +187,7 @@ public class SudokuBee extends Thread{
 					int size=pop.size;
 					board.showNumber(pop.btnX, pop.btnY, popCounter);
 					board.setSudokuArray(popCounter, isAns,pop.btnX, pop.btnY);
+					updateGivenCount();
 					pop.field.setForeground(java.awt.Color.black);
 					pop.setVisible(false,0,0,0);
 					status.setVisible(true);
@@ -250,6 +234,7 @@ public class SudokuBee extends Thread{
 					if(str.length()==0){
 						board.showNumber(pop.btnX, pop.btnY, 0);
 						board.setSudokuArray(0, false,pop.btnX, pop.btnY);
+						updateGivenCount();
 						pop.setVisible(false,0,0,0);
 						status.setVisible(true);
 						game.setVisible(isAns);
@@ -260,6 +245,7 @@ public class SudokuBee extends Thread{
 							if(num<=size && num>=1){
 								board.showNumber(pop.btnX, pop.btnY, num);
 								board.setSudokuArray(num, isAns,pop.btnX, pop.btnY);
+								updateGivenCount();
 								pop.setVisible(false,0,0,0);
 								status.setVisible(true);
 								game.setVisible(isAns);
@@ -292,6 +278,7 @@ public class SudokuBee extends Thread{
 			public void actionPerformed(ActionEvent e){
 				board.showNumber(pop.btnX, pop.btnY, 0);
 				board.setSudokuArray(0, false,pop.btnX, pop.btnY);
+				updateGivenCount();
 				pop.setVisible(false,0,0,0);
 				status.setVisible(true);
 				game.setVisible(isAns);
@@ -419,9 +406,6 @@ public class SudokuBee extends Thread{
 		isAns=true;
 		int size=options.getBoardSize();
 		board(new int[size][size][2], true);
-		numEmp=100;
-		numOnlook=200;
-		numCycle=100000000;
 		generate=true;
 		gameMode=true;
 		isSolved=false;
@@ -437,7 +421,10 @@ public class SudokuBee extends Thread{
 				}
 			catch(Exception e){}
 			game.setVisible(1);
-			if(gameMode){
+			if(gameMode && generate){
+				generatePuzzle();
+				}
+			else if(gameMode){
 				status.setVisible(false);
 				PrintResult printer=new PrintResult("results/.xls");
 				int sudoku[][][]=board.getSudokuArray();
@@ -453,37 +440,15 @@ public class SudokuBee extends Thread{
 					}
 				animate.decompose();
 				animate=null;
-				if(generate){
-					if(abc.getFitness()==1){
-						int[][][] user=fromUser ? sudoku : null;
-						GenerateSudoku gen=new GenerateSudoku(abc.getBestSolution(), user, givenPercent);
-						board(gen.getSudoku(), false);
-						gen=null;
-						if(randomGen){
-							status.decompose();
-							status("");
-							randomGen=false;
-							}
-						fromUser=false;                      // moved here
-						}
-					else{
-						board(sudoku, !fromUser);
-						GP.error(container, "Couldn't complete the puzzle. Try again or lower the percentage.", "Generation failed");
-						}
+				if(abc.getFitness()==1){
+					exit(8);
+					board=new UIBoard(abc.getBestSolution(), GP.panel[5]);
+					}
+				else{
+					board(abc.getBestSolution(), false);
 					isSolved=false;
-					abc=null;
 					}
-				else{                                        // <-- restore this: the Solve path
-					if(abc.getFitness()==1){
-						exit(8);
-						board=new UIBoard(abc.getBestSolution(), GP.panel[5]);
-						}
-					else{
-						board(abc.getBestSolution(), false);
-						isSolved=false;
-						}
-					abc=null;
-					}
+				abc=null;
 				printer.close();
 				printer.delete();
 				printer=null;
@@ -532,6 +497,31 @@ public class SudokuBee extends Thread{
 			while(!start);
 			}
 		}
+	// Play / New Game: builds the random puzzle (see PuzzleBuilder).
+	// fromUser=false -> start from an empty board; fromUser=true -> keep the cells the user entered
+	private void generatePuzzle(){
+		status.setVisible(false);
+		int sudoku[][][]=board.getSudokuArray();
+		PuzzleBuilder builder=new PuzzleBuilder(sudoku.length, fromUser ? sudoku : null, givenPercent);
+		board.decompose();
+		board=null;
+		if(builder.status==PuzzleBuilder.OK){
+			board(builder.puzzle, false);
+			if(randomGen){
+				status.decompose();
+				status("");
+				randomGen=false;
+				}
+			fromUser=false;
+			}
+		else{
+			isAns=false;	// back to create mode so the user can fix their cells
+			board(sudoku, false);
+			GP.error(container, PuzzleBuilder.message(builder.status), "Couldn't create the puzzle");
+			}
+		isSolved=false;
+		status.setVisible(true);
+		}
 	protected void delay(int newDelay){
 		try{
 			sleep(newDelay);
@@ -544,7 +534,7 @@ public class SudokuBee extends Thread{
 	public void actionPerformed(ActionEvent e){
 		int sudoku[][][]=board.getSudokuArray();
 
-		// NEW: count check, before validity and before ABC
+		// the user may not enter more given cells than the chosen percentage allows
 		if(randomGen){
 			int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
 			int have=GenerateSudoku.countGivens(sudoku);
@@ -566,13 +556,10 @@ public class SudokuBee extends Thread{
 		Validator val=new Validator(sudoku, subgrid);
 		if(val.checkValidity()){
 			if(randomGen){
-				// NEW: hand the board to the run() pipeline instead of entering play mode
+				// hand the user's board to generatePuzzle(), which adds the remaining given cells
 				isAns=true;
 				generate=true;
 				gameMode=true;
-				numEmp=100;
-				numOnlook=200;
-				numCycle=100000;
 				try{ start(); }
 				catch(Exception ee){ start=true; }
 				}
@@ -630,7 +617,7 @@ public class SudokuBee extends Thread{
 
 	private void percentDialog(final boolean fromPlay){
 		GP.setVisible(0);
-		percent=new UIPercent(GP.panel[0]);
+		percent=new UIPercent(GP.panel[0], options.getBoardSize());
 		percent.okay.addActionListener(e -> percent.nextStep());
 		percent.cancel.addActionListener(e -> {
 			percent.decompose(); percent=null;
@@ -656,7 +643,17 @@ public class SudokuBee extends Thread{
 			game.setVisible(false);
 			status("create");
 			popUp(size);
+			updateGivenCount();
 			});
+	}
+	// "No" path: shows how many given cells the user has entered and how many are allowed
+	private void updateGivenCount(){
+		if(!randomGen || status==null || board==null)
+			return;
+		int[][][] sudoku=board.getSudokuArray();
+		int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
+		int have=GenerateSudoku.countGivens(sudoku);
+		status.setInfo("Given cells: "+have+" / "+max+"  ("+givenPercent+"%)", have>max);
 	}
 	private void save(){
 		save=new UISave(GP.panel[2]);

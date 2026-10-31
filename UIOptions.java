@@ -8,9 +8,9 @@ public class UIOptions extends generalPanel{
 	private JLabel bg;
 
 	private int size[]={9,16,25};
-	private String sound[]={"img\\exit\\sound\\on.png","img\\exit\\sound\\off.png"};
+	private String sound[]={"img/exit/sound/on.png","img/exit/sound/off.png"};
 
-	protected JLabel sizeLabel, levelLabel, soundLabel;
+	protected JLabel sizeLabel, soundLabel;
 	protected JButton exit, no;
 	protected JButton left[]=new JButton[2];
 	protected JButton right[]=new JButton[2];
@@ -73,7 +73,7 @@ public class UIOptions extends generalPanel{
 		}
 	protected void decompose(){
 		panel[1].removeAll();
-		bg=sizeLabel=levelLabel=soundLabel=null;
+		bg=sizeLabel=soundLabel=null;
 		exit=no=null;
 		left[0]=right[0]=left[1]=right[1]=null;
 		}

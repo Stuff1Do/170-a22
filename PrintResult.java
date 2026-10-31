@@ -1,12 +1,9 @@
 import java.io.FileWriter;
 import java.io.PrintWriter;
-import java.util.Calendar;
-import java.text.SimpleDateFormat;
 
 class PrintResult{
 	private FileWriter writer;
 	private PrintWriter print;
-	private SimpleDateFormat dateFormat;
 	private String filename;
 	PrintResult(String filename){
 		this.filename=filename;
@@ -17,7 +14,6 @@ class PrintResult{
 		catch(Exception e){
 			e.printStackTrace();
 			}
-		dateFormat=new SimpleDateFormat("HHmmssSSS");
 		}
 	protected void print(Object text){
 		print.print(text+"\n");
@@ -28,7 +24,8 @@ class PrintResult{
 	protected void delete(){
 		new java.io.File(filename).delete();
 		}
+	// current time in milliseconds (safe to subtract across minute/hour boundaries)
 	protected double getTime(){
-		return (Double.parseDouble(dateFormat.format(Calendar.getInstance().getTime())));
+		return System.currentTimeMillis();
 		}
 	}

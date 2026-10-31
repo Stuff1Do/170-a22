@@ -14,14 +14,14 @@ public class UIPercent extends generalPanel{
 	// centres of the two button pills baked into the background (panel coordinates)
 	private static final int LEFT_X=BG_X+217, RIGHT_X=BG_X+411, PILL_Y=BG_Y+251;
 
-	UIPercent(JPanel pane){
+	UIPercent(JPanel pane, int size){
 		this.pane=pane;
 		pane.removeAll();					// clear whatever the previous dialog left behind
 		pane.setOpaque(true);
 		String pct[]=new String[20];
 		for(int i=0; i<20; i++)
-			pct[i]=(i*5)+"%";				// 0% ... 95%
-		combo=addJCombo(pane, pct, BG_X+292, BG_Y+142, 180, 32);
+			pct[i]=(i*5)+"%  ("+GenerateSudoku.maxGivens(size, i*5)+" of "+(size*size)+" cells)";	// 0% ... 95%
+		combo=addJCombo(pane, pct, BG_X+262, BG_Y+142, 240, 32);
 		combo.setSelectedIndex(2);			// 10% is the default
 		okay=addButton(pane, "img/exit/okay.png", "img/exit/h_okay.png", 0, 0);
 		cancel=addButton(pane, "img/exit/cancel.png", "img/exit/h_cancel.png", 0, 0);

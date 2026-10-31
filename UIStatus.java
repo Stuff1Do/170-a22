@@ -1,10 +1,11 @@
 import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JButton;
-import java.awt.Cursor;
+import java.awt.Color;
+import java.awt.Font;
 public class UIStatus extends generalPanel{
 	private JPanel pane;
-	private JLabel bg;
+	private JLabel bg, info;
 	protected JButton yes, no, save, open, reset;
 	UIStatus(String str, JPanel pane){
 		this.pane=pane;
@@ -18,15 +19,21 @@ public class UIStatus extends generalPanel{
 		save.setVisible(!yes.isVisible());
 		open.setVisible(!yes.isVisible());
 		reset.setVisible(!yes.isVisible());
+		info=addLabel(pane, "", 92, 56, 200, 18);	// given-cell counter, used in create mode
+		info.setFont(new Font("Arial", Font.BOLD, 13));
 		bg=addLabel(pane, "img/status/"+str+".png",0,0);
 		}
 	protected void setVisible(boolean isVisible){
 		pane.setVisible(isVisible);
 		pane.repaint();
 		}
+	protected void setInfo(String text, boolean isError){
+		info.setText(text);
+		info.setForeground(isError ? Color.red : new Color(120,40,0));
+		}
 	protected void decompose(){
 		pane.removeAll();
-		bg=null;
+		bg=info=null;
 		yes=no=null;
 		}
 	}
