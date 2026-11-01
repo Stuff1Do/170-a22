@@ -24,7 +24,9 @@ public class UIPercent extends generalPanel{
 		String pct[]=new String[20];
 		for(int i=0; i<20; i++)
 			pct[i]=(i*5)+"%  ("+GenerateSudoku.maxGivens(size, i*5)+" of "+(size*size)+" cells)";	// 0% ... 95%
-		combo=addJCombo(pane, pct, BG_X+262, BG_Y+142, 240, 32);
+		combo=new HoneyCombo(pct);
+        combo.setBounds(BG_X+262, BG_Y+142, 240, 32);
+        pane.add(combo);
 		combo.setSelectedIndex(2);			// 10% is the default
 		combo.setFont(new Font("Arial", Font.BOLD, 14));	// game colors instead of the plain system look
 		combo.setForeground(new Color(120,50,10));
