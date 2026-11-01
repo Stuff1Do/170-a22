@@ -19,8 +19,8 @@ public class UIStatus extends generalPanel{
 		save.setVisible(!yes.isVisible());
 		open.setVisible(!yes.isVisible());
 		reset.setVisible(!yes.isVisible());
-		info=addLabel(pane, "", 92, 51, 410, 20);	// given-cell counter, used in create mode
-		info.setFont(new Font("Arial", Font.BOLD, 14));
+		info=addLabel(pane, "", 92, 57, 410, 17);	// given-cell counter, used in create mode (below YES/NO, which end at y=56)
+		info.setFont(new Font("Arial", Font.BOLD, 13));
 		bg=addLabel(pane, "img/status/"+str+".png",0,0);
 		}
 	protected void setVisible(boolean isVisible){

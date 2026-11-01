@@ -33,7 +33,7 @@ public class SudokuBee extends Thread{
 	private volatile boolean start=false;	//set by the buttons, read by run(): volatile so run() sees the change
 	private Tunog snd, error;
 	private JFrame frame=new JFrame();
-	private Container container=frame.getContentPane();
+	private Container container=layeredContent(frame);
 	private String saveFileName="";
 	private int givenPercent=10;
 	private boolean fromUser=false; 
@@ -521,10 +521,23 @@ public class SudokuBee extends Thread{
 		else{
 			isAns=false;	// back to create mode so the user can fix their cells
 			board(sudoku, false);
-			GP.error(container, PuzzleBuilder.message(builder.status), "Couldn't create the puzzle");
+			final String problem=PuzzleBuilder.message(builder.status);
+			javax.swing.SwingUtilities.invokeLater(() -> message("Can't make the puzzle", problem));
 			}
 		isSolved=false;
 		status.setVisible(true);
+		}
+	// shows a game-style message pop-up (UIMessage) over the board; OKAY goes back to the board
+	private void message(String heading, String text){
+		status.setVisible(false);
+		game.setVisible(false);
+		final UIMessage msg=new UIMessage(GP.panel[0], heading, text);
+		msg.okay.addActionListener(e -> {
+			msg.decompose();
+			GP.setVisible(5);
+			status.setVisible(true);
+			game.setVisible(isAns);
+			});
 		}
 	protected void delay(int newDelay){
 		try{
@@ -543,8 +556,8 @@ public class SudokuBee extends Thread{
 			int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
 			int have=GenerateSudoku.countGivens(sudoku);
 			if(have>max){
-				GP.error(container, "You entered "+have+" given cells, but "+givenPercent
-					+"% allows at most "+max+". Remove some and try again.", "Too many givens");
+				message("Too many clues", "You entered "+have+" clues, but "+givenPercent
+					+"% allows at most "+max+".\n\nRemove some, then press YES again.");
 				return;   // stay in create mode
 				}
 			}
@@ -891,6 +904,17 @@ public class SudokuBee extends Thread{
 		}
 	private void sop(Object obj){
 		System.out.println(obj+"");
+		}
+	//the game's screens are panels stacked on top of each other in the window; tell Swing they overlap,
+	//so a redraw underneath (e.g. a greyed-out button) never paints over the pop-up on top
+	private static Container layeredContent(JFrame frame){
+		javax.swing.JPanel content=new javax.swing.JPanel(null){
+			public boolean isOptimizedDrawingEnabled(){
+				return false;
+				}
+			};
+		frame.setContentPane(content);
+		return content;
 		}
 	public static void main(String args[]){
 		SudokuBee app=new SudokuBee();

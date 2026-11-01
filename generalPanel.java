@@ -98,6 +98,10 @@ public class generalPanel{
 					g.fillRect(0, 0, getWidth(), getHeight());
 					}
 				}
+			//the things inside overlap (pictures behind buttons), so when one redraws, Swing must redraw the ones on top too
+			public boolean isOptimizedDrawingEnabled(){
+				return false;
+				}
 			};
 		pane.setBounds(x, y, width, height);
 		pane.setLayout(null);
