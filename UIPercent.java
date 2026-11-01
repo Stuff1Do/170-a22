@@ -2,11 +2,14 @@ import javax.swing.JPanel;
 import javax.swing.JLabel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.BorderFactory;
+import java.awt.Color;
+import java.awt.Font;
 public class UIPercent extends generalPanel{
 	private JPanel pane;
 	private JLabel bg;
 	protected JComboBox combo;
-	protected JButton okay, cancel, yes, no;
+	protected JButton okay, cancel, yes, no, back;
 	protected int step=0;
 
 	// the background image is 600x329 and is placed at (100,174), like img/bg/save.png
@@ -21,8 +24,17 @@ public class UIPercent extends generalPanel{
 		String pct[]=new String[20];
 		for(int i=0; i<20; i++)
 			pct[i]=(i*5)+"%  ("+GenerateSudoku.maxGivens(size, i*5)+" of "+(size*size)+" cells)";	// 0% ... 95%
-		combo=addJCombo(pane, pct, BG_X+262, BG_Y+142, 240, 32);
+		combo=new HoneyCombo(pct);
+        combo.setBounds(BG_X+262, BG_Y+142, 240, 32);
+        pane.add(combo);
 		combo.setSelectedIndex(2);			// 10% is the default
+		combo.setFont(new Font("Arial", Font.BOLD, 14));	// game colors instead of the plain system look
+		combo.setForeground(new Color(120,50,10));
+		combo.setBackground(new Color(255,236,170));
+		combo.setBorder(BorderFactory.createLineBorder(new Color(120,50,10), 2));
+		back=addButton(pane, "img/help/left.png", "img/help/h_left.png", BG_X+48, BG_Y+44);	// step (b) -> back to step (a)
+		back.setToolTipText("Back to the percentage");
+		back.setVisible(false);
 		okay=addButton(pane, "img/exit/okay.png", "img/exit/h_okay.png", 0, 0);
 		cancel=addButton(pane, "img/exit/cancel.png", "img/exit/h_cancel.png", 0, 0);
 		yes=addButton(pane, "img/exit/yes.png", "img/exit/h_yes.png", 0, 0);
@@ -52,6 +64,18 @@ public class UIPercent extends generalPanel{
 		cancel.setVisible(false);			// Yes/No take the place of OK/Cancel
 		yes.setVisible(true);
 		no.setVisible(true);
+		back.setVisible(true);
+		pane.repaint();
+		}
+	protected void previousStep(){			// (b) start from an empty board?  ->  (a) percentage
+		step=0;
+		changePicture(bg, "img/bg/percent.png");
+		yes.setVisible(false);
+		no.setVisible(false);
+		back.setVisible(false);
+		combo.setVisible(true);
+		okay.setVisible(true);
+		cancel.setVisible(true);
 		pane.repaint();
 		}
 	protected void decompose(){
@@ -60,6 +84,6 @@ public class UIPercent extends generalPanel{
 		pane.repaint();
 		bg=null;
 		combo=null;
-		okay=cancel=yes=no=null;
+		okay=cancel=yes=no=back=null;
 		}
 	}

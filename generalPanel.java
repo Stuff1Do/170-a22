@@ -83,7 +83,26 @@ public class generalPanel{
 		}
 //JPanel
 	protected JPanel addPanel(Container container, int x, int y, int width, int height){
-		JPanel pane=new JPanel();
+		//the background is see-through yellow, so Swing must still paint what is behind the panel:
+		//setOpaque(true) turns the yellow tint on, but the panel always tells Swing it is not opaque
+		//(a "solid" panel with a see-through color leaves old pictures showing through)
+		JPanel pane=new JPanel(){
+			private boolean tinted;
+			public void setOpaque(boolean isOpaque){
+				tinted=isOpaque;
+				super.setOpaque(false);
+				}
+			protected void paintComponent(java.awt.Graphics g){
+				if(tinted){
+					g.setColor(getBackground());
+					g.fillRect(0, 0, getWidth(), getHeight());
+					}
+				}
+			//the things inside overlap (pictures behind buttons), so when one redraws, Swing must redraw the ones on top too
+			public boolean isOptimizedDrawingEnabled(){
+				return false;
+				}
+			};
 		pane.setBounds(x, y, width, height);
 		pane.setLayout(null);
 		pane.setVisible(true);

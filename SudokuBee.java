@@ -29,14 +29,16 @@ public class SudokuBee extends Thread{
 	private UIPercent percent;
 	private int btnX, btnY;
 	private int numOnlook, numEmp, numCycle;
-	private boolean isAns=false, generate=true, start = false, gameMode=true, isSolved=false;
+	private boolean isAns=false, generate=true, gameMode=true, isSolved=false;
+	private volatile boolean start=false;
 	private Tunog snd, error;
 	private JFrame frame=new JFrame();
-	private Container container=frame.getContentPane();
+	private Container container=layeredContent(frame);
 	private String saveFileName="";
 	private int givenPercent=10;
 	private boolean fromUser=false; 
 	private boolean randomGen=false;   
+	private UITooMany tooMany;
 	SudokuBee(){
 		frame.setTitle(" Sudoku Bee");
 		snd=new Tunog("snd/1.mid");
@@ -62,6 +64,8 @@ public class SudokuBee extends Thread{
 			});
 		GP.open.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent e){
+				randomGen=false;
+				fromUser=false;
 				GP.setVisibleButton(false);
 				int size=options.getBoardSize();
 				isSolved=false;
@@ -101,6 +105,20 @@ public class SudokuBee extends Thread{
 				}
 			});
 		}
+	private void tooMany(int have, int max){
+		status.setVisible(false);
+		game.setVisible(false);
+		tooMany=new UITooMany(GP.panel[0], have, max, givenPercent);
+		tooMany.okay.addActionListener(new ActionListener(){
+			public void actionPerformed(ActionEvent e){
+				tooMany.decompose();
+				tooMany=null;
+				GP.setVisible(5);
+				game.setVisible(false);		// still in create mode
+				status.setVisible(true);
+				}
+			});
+	}
 	private void loadSudoku(int num){
 		GP.setVisible(num);
 		load=new UILoad(GP.solve);
@@ -422,7 +440,8 @@ public class SudokuBee extends Thread{
 			catch(Exception e){}
 			game.setVisible(1);
 			if(gameMode && generate){
-				generatePuzzle();
+				try{ generatePuzzle(); }
+   					catch(Throwable t){ t.printStackTrace(); }
 				}
 			else if(gameMode){
 				status.setVisible(false);
@@ -462,7 +481,9 @@ public class SudokuBee extends Thread{
 				ABC abc=new ABC(printer, board.getSudokuArray(),numEmp,numOnlook, numCycle);
 				abc.start();
 				double startTime=printer.getTime();
-				while(!abc.isDone());
+				while(!abc.isDone()){
+					delay(20);
+				}
 				double end=(printer.getTime());
 				double seconds=((end-startTime)/1000);
 				printer.print("\nCycles:\t "+abc.getCycles()+"\nTime:\t"+seconds);
@@ -495,6 +516,7 @@ public class SudokuBee extends Thread{
 				game.setVisible(0);
 			start=false;
 			while(!start);
+				delay(20);
 			}
 		}
 	// Play / New Game: builds the random puzzle (see PuzzleBuilder).
@@ -517,10 +539,23 @@ public class SudokuBee extends Thread{
 		else{
 			isAns=false;	// back to create mode so the user can fix their cells
 			board(sudoku, false);
-			GP.error(container, PuzzleBuilder.message(builder.status), "Couldn't create the puzzle");
+			final String problem=PuzzleBuilder.message(builder.status);
+			javax.swing.SwingUtilities.invokeLater(() -> message("Can't make the puzzle", problem));
 			}
 		isSolved=false;
 		status.setVisible(true);
+		}
+	// shows a game-style message pop-up (UIMessage) over the board; OKAY goes back to the board
+	private void message(String heading, String text){
+		status.setVisible(false);
+		game.setVisible(false);
+		final UIMessage msg=new UIMessage(GP.panel[0], heading, text);
+		msg.okay.addActionListener(e -> {
+			msg.decompose();
+			GP.setVisible(5);
+			status.setVisible(true);
+			game.setVisible(isAns);
+			});
 		}
 	protected void delay(int newDelay){
 		try{
@@ -539,8 +574,7 @@ public class SudokuBee extends Thread{
 			int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
 			int have=GenerateSudoku.countGivens(sudoku);
 			if(have>max){
-				GP.error(container, "You entered "+have+" given cells, but "+givenPercent
-					+"% allows at most "+max+". Remove some and try again.", "Too many givens");
+				tooMany(have, max);
 				return;   // stay in create mode
 				}
 			}
@@ -616,11 +650,15 @@ public class SudokuBee extends Thread{
 		}
 
 	private void percentDialog(final boolean fromPlay){
-		GP.setVisible(0);
+		GP.setVisible(7);	// the main menu stays faded behind the dialog, like the other pop-ups
+		GP.setVisibleButton(false);
+		GP.panel[0].setVisible(true);
 		percent=new UIPercent(GP.panel[0], options.getBoardSize());
 		percent.okay.addActionListener(e -> percent.nextStep());
+		percent.back.addActionListener(e -> percent.previousStep());
 		percent.cancel.addActionListener(e -> {
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			GP.setVisible(7);
 			});
 		percent.yes.addActionListener(e -> {
@@ -628,6 +666,7 @@ public class SudokuBee extends Thread{
 			fromUser=false;
 			randomGen=false;
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			startRandomGame();
 			});
 		percent.no.addActionListener(e -> {
@@ -635,6 +674,7 @@ public class SudokuBee extends Thread{
 			fromUser=true;
 			randomGen=true;
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			mainGame();
 			isAns=false;
 			int size=options.getBoardSize();
@@ -653,7 +693,10 @@ public class SudokuBee extends Thread{
 		int[][][] sudoku=board.getSudokuArray();
 		int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
 		int have=GenerateSudoku.countGivens(sudoku);
-		status.setInfo("Given cells: "+have+" / "+max+"  ("+givenPercent+"%)", have>max);
+		if(have>max)
+			status.setInfo("Too many clues: "+have+" of "+max+" ("+givenPercent+"%). Remove some.", true);
+		else
+			status.setInfo("Your clues: "+have+" of "+max+" ("+givenPercent+"%). Press YES when done.", false);
 	}
 	private void save(){
 		save=new UISave(GP.panel[2]);
@@ -738,6 +781,8 @@ public class SudokuBee extends Thread{
 					if(exit.num==0)
 						System.exit(0);
 					else if(exit.num==1){
+						randomGen=false;
+						fromUser=false;		
 						board.decompose();
 						board=null;
 						game.decompose();
@@ -749,6 +794,8 @@ public class SudokuBee extends Thread{
 						GP.setVisible(7);
 						}
 					else if(exit.num==2){
+						randomGen=false;
+						fromUser=false;
 						board.decompose();
 						board=null;
 						game.decompose();
@@ -878,6 +925,17 @@ public class SudokuBee extends Thread{
 		}
 	private void sop(Object obj){
 		System.out.println(obj+"");
+		}
+	//the game's screens are panels stacked on top of each other in the window; tell Swing they overlap,
+	//so a redraw underneath (e.g. a greyed-out button) never paints over the pop-up on top
+	private static Container layeredContent(JFrame frame){
+		javax.swing.JPanel content=new javax.swing.JPanel(null){
+			public boolean isOptimizedDrawingEnabled(){
+				return false;
+				}
+			};
+		frame.setContentPane(content);
+		return content;
 		}
 	public static void main(String args[]){
 		SudokuBee app=new SudokuBee();

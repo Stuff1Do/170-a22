@@ -22,12 +22,26 @@ public class UIGame extends generalPanel{
 		bg=addLabel(panel[2],"img/bg/game.png",0,0);
 		setVisible(0);
 		}
+	//true = the buttons work; false = they are greyed out (a dialog is open, or a puzzle is being created).
+	//the buttons stay on screen because their yellow pills are drawn into the background picture
 	protected void setVisible(boolean isVisible){
-		panel[0].setVisible(isVisible);
+		panel[0].setVisible(true);
+		panel[1].setVisible(false);
+		setButtonsEnabled(isVisible);
 		}
+	//0 = buttons, 1 = the "solving..." animation
 	protected void setVisible(int num){
 		panel[0].setVisible(num==0);
 		panel[1].setVisible(num==1);
+		if(num==0)
+			setButtonsEnabled(true);
+		}
+	private void setButtonsEnabled(boolean isEnabled){
+		newGame.setEnabled(isEnabled);
+		solve.setEnabled(isEnabled);
+		options.setEnabled(isEnabled);
+		help.setEnabled(isEnabled);
+		exit.setEnabled(isEnabled);
 		}
 	protected void decompose(){
 		for(int ctr=0; ctr<panel.length && panel[ctr]!=null; ctr++){
