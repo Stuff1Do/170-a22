@@ -29,7 +29,8 @@ public class SudokuBee extends Thread{
 	private UIPercent percent;
 	private int btnX, btnY;
 	private int numOnlook, numEmp, numCycle;
-	private boolean isAns=false, generate=true, start = false, gameMode=true, isSolved=false;
+	private boolean isAns=false, generate=true, gameMode=true, isSolved=false;
+	private volatile boolean start=false;	//set by the buttons, read by run(): volatile so run() sees the change
 	private Tunog snd, error;
 	private JFrame frame=new JFrame();
 	private Container container=frame.getContentPane();
@@ -462,7 +463,10 @@ public class SudokuBee extends Thread{
 				ABC abc=new ABC(printer, board.getSudokuArray(),numEmp,numOnlook, numCycle);
 				abc.start();
 				double startTime=printer.getTime();
-				while(!abc.isDone());
+				try{
+					abc.join();	//wait until the solver thread ends
+					}
+				catch(InterruptedException err){}
 				double end=(printer.getTime());
 				double seconds=((end-startTime)/1000);
 				printer.print("\nCycles:\t "+abc.getCycles()+"\nTime:\t"+seconds);
@@ -616,11 +620,15 @@ public class SudokuBee extends Thread{
 		}
 
 	private void percentDialog(final boolean fromPlay){
-		GP.setVisible(0);
+		GP.setVisible(7);	// the main menu stays faded behind the dialog, like the other pop-ups
+		GP.setVisibleButton(false);
+		GP.panel[0].setVisible(true);
 		percent=new UIPercent(GP.panel[0], options.getBoardSize());
 		percent.okay.addActionListener(e -> percent.nextStep());
+		percent.back.addActionListener(e -> percent.previousStep());
 		percent.cancel.addActionListener(e -> {
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			GP.setVisible(7);
 			});
 		percent.yes.addActionListener(e -> {
@@ -628,6 +636,7 @@ public class SudokuBee extends Thread{
 			fromUser=false;
 			randomGen=false;
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			startRandomGame();
 			});
 		percent.no.addActionListener(e -> {
@@ -635,6 +644,7 @@ public class SudokuBee extends Thread{
 			fromUser=true;
 			randomGen=true;
 			percent.decompose(); percent=null;
+			GP.setVisibleButton(true);
 			mainGame();
 			isAns=false;
 			int size=options.getBoardSize();
@@ -653,7 +663,10 @@ public class SudokuBee extends Thread{
 		int[][][] sudoku=board.getSudokuArray();
 		int max=GenerateSudoku.maxGivens(sudoku.length, givenPercent);
 		int have=GenerateSudoku.countGivens(sudoku);
-		status.setInfo("Given cells: "+have+" / "+max+"  ("+givenPercent+"%)", have>max);
+		if(have>max)
+			status.setInfo("Too many clues: "+have+" of "+max+" ("+givenPercent+"%). Remove some.", true);
+		else
+			status.setInfo("Your clues: "+have+" of "+max+" ("+givenPercent+"%). Press YES when done.", false);
 	}
 	private void save(){
 		save=new UISave(GP.panel[2]);
